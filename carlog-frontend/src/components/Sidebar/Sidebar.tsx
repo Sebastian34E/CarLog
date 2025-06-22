@@ -1,12 +1,36 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useSidebar } from "./SidebarContext";
 import DarkModeToggle from "@/components/DarkModeToggle/DarkModeToggle";
 
 const Sidebar = () => {
-  const { isOpen } = useSidebar();
+  const { isOpen, toggle } = useSidebar();
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close on mobile
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        if (window.innerWidth < 640 && isOpen) {
+          toggle();
+        }
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, toggle]);
 
   return (
     <aside
+      ref={sidebarRef}
       className={`fixed top-0 left-0 z-40 w-64 h-screen transition-transform bg-gray-50 dark:bg-gray-800 ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       } sm:translate-x-0`}
@@ -14,6 +38,7 @@ const Sidebar = () => {
     >
       <div className="flex flex-col h-full px-3 py-4 overflow-y-auto">
         <ul className="space-y-2 font-medium">
+          {/* Repeat for other sidebar items as needed */}
           <li>
             <a
               href="#"
@@ -94,7 +119,6 @@ const Sidebar = () => {
               <span className="ms-3">Settings</span>
             </a>
           </li>
-          {/* Repeat for other sidebar items as needed */}
         </ul>
         <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
           <DarkModeToggle />
